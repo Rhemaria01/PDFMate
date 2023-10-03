@@ -21,6 +21,7 @@ const UploadDropzone = () => {
     
     const { startUpload } = useUploadThing("pdfUploader")
    const {mutate: startPolling} = trpc.getFile.useMutation({
+    
     onSuccess: (file) => {
         router.push(`/dashboard/${file.id}`)
     },
