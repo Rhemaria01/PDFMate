@@ -1,5 +1,6 @@
 import { db } from "@/db";
-import { openai } from "@/lib/openai";
+import OpenAI from "openai"
+
 import { getPineconeClient } from "@/lib/pinecone";
 import { SendMessageValidator } from "@/lib/validators/SendMessageValidator";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
@@ -69,7 +70,9 @@ export const POST =async (req:NextRequest) => {
         content: msg.text
       }))
 
-
+     const openai = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY
+      })
       const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         temperature: 0,
