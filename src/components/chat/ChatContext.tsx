@@ -64,9 +64,9 @@ export const ChatContextProvider = ({fileId, children}: Props) => {
                         pageParams: []
                     }
                 }
-
+               
                 let newPages = [...old.pages]
-
+                
                 let latestPage = newPages[0]!
 
                 latestPage.messages = [{
@@ -135,7 +135,7 @@ export const ChatContextProvider = ({fileId, children}: Props) => {
                         }
                         else{
                             upadtedMessages= page.messages.map((message)=> {
-                                if(message.id === "ai-response"){
+                                if(message.id === "ai-response"){                                    
                                     return {
                                         ...message,
                                         text: accResponse
