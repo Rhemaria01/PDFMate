@@ -5,14 +5,15 @@ import { Avatar, AvatarFallback } from "./ui/avatar"
 import Image from "next/image"
 import { Icons } from "./icons"
 import Link from "next/link"
-import { Gem } from "lucide-react"
+import { Crown, Gem } from "lucide-react"
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/server"
 interface UserAccountNavProps{
     email: string | undefined,
     name: string,
-    imageUrl: string
+    imageUrl: string,
+    isAdmin?: boolean
 }
-const UserAccountNav = async ({email, imageUrl, name}: UserAccountNavProps) => {
+const UserAccountNav = async ({email, imageUrl, name,isAdmin}: UserAccountNavProps) => {
 
     const subscriptionPlan = await getUserSubscriptionPlan()
   return (
@@ -36,6 +37,9 @@ const UserAccountNav = async ({email, imageUrl, name}: UserAccountNavProps) => {
     <DropdownMenuContent className="bg-white" align="end">
         <div className="flex items-center justify-start gap-2 p-2">
             <div className="flex flex-col space-y-0.5 leading-none">
+                {isAdmin && <p className="font-medium text-sm text-black flex">
+                     <Crown className="w-4 h-4 mr-1.5 text-yellow-300" /> Admin
+                    </p>}
                 {name && <p className="font-medium text-sm text-black">{name}</p>}
                 {email && (
                 <p className="w-[200px] truncate text-sm text-zinc-700">{email}</p>

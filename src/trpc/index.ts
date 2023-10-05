@@ -1,5 +1,6 @@
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
 import {
+  adminProcedure,
   privateProcedure,
   publicProcedure,
   router,
@@ -14,6 +15,10 @@ import {
   stripe,
 } from '@/lib/stripe'
 import { PLANS } from '@/config/stripe'
+import { getPineconeClient } from '@/lib/pinecone'
+import { utapi } from "uploadthing/server";
+ 
+
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -207,14 +212,111 @@ export const appRouter = router({
 
       if (!file) throw new TRPCError({ code: 'NOT_FOUND' })
 
+      await db.message.deleteMany({
+        where: {
+          fileId: input.id
+        }})
+
       await db.file.delete({
         where: {
           id: input.id,
         },
       })
 
+      await utapi.deleteFiles(file.key)
+
+      const pinecone = await getPineconeClient()
+      const pineconeIndex = pinecone.Index('pdfmate')
+
+      await pineconeIndex.delete1({
+        deleteAll: true,
+        namespace: input.id
+      })
+
       return file
     }),
+
+  deleteFileFromEverywhere: adminProcedure
+  .input(z.object({fileId: z.string() })).mutation(async ({ctx,input}) => {
+      const {userId} = ctx
+      if(userId !== process.env.ADMIN_ID) throw new TRPCError({ code: 'UNAUTHORIZED'})
+
+      const pinecone = await getPineconeClient()
+      const pineconeIndex = pinecone.Index('pdfmate')
+      
+      const {fileId} = input
+      
+      const fileKey = await db.file.findFirst({
+        where: {
+          id: fileId
+        },
+        select: {
+          key: true
+        }
+      })
+
+      if(!fileKey) return {
+        title: "No such File",
+        description: `No file with Id: ${fileId}`
+      }
+      
+      if(fileId &&  fileKey?.key) {
+
+        try {
+          await pineconeIndex.delete1({
+            deleteAll: true,
+            namespace: fileId
+          })
+        } catch (error) {
+          console.log(error,'from pinecone');
+          return {
+            title: "Error Deleting",
+            description: `Error Deleting: ${fileId} from pinecone`
+          }
+        }
+
+        try {
+          await utapi.deleteFiles(fileKey?.key)
+          
+        } catch (error) {
+          console.log(error,'from uploadthing');
+          return {
+            title: "Error Deleting",
+            description: `Error Deleting: ${fileId} from uploadthing`
+          }
+        }
+
+        try {
+          await db.message.deleteMany({
+            where:{
+              fileId
+            }
+          })
+          await db.file.delete({
+            where: {
+              id: fileId
+            }
+          })
+          
+        } catch (error) {
+          console.log(error,'from Database');
+          return {
+            title: "Error Deleting",
+            description: `Error Deleting: ${fileId} from database`
+          }      
+        }
+        return {
+          title: "Deleted Successfully",
+          description: `Deleted file ${fileId} from Pinecone, Uploadthing and Database.
+          Also Deleted Chat with the file`
+        }
+      }
+      return {
+        title: "Something went wrong",
+        description: "Not able to catch the error"
+      }
+      
+  })
 })
 
 export type AppRouter = typeof appRouter

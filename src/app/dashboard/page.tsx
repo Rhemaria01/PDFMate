@@ -19,7 +19,8 @@ const Page  = async () => {
      if(!dbUser) redirect('/auth-callback?origin=dashboard')
 
      const subscriptionPlan = await getUserSubscriptionPlan()
-  return <Dashboard subscriptionPlan={subscriptionPlan}/>
+     const isAdmin = user.id === process.env.ADMIN_ID
+  return <Dashboard subscriptionPlan={subscriptionPlan} isAdmin={isAdmin}/>
 }
 
 export default Page

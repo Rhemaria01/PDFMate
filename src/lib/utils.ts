@@ -13,7 +13,7 @@ export function absoluteUrl(path: string){
 }
 
 export function constructMetadata({
-  title = "PDF Mate",
+  title = "PDFMate - by CodeRustlers",
   description= "Chatting with PDF made easier by your PDF Mate",
   image= 'thumbnail.png',
   icons= "/favicon.ico",
