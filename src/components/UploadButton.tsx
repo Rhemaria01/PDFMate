@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
 import { Button } from "./ui/button"
 
 import Dropzone from "react-dropzone"
-import { Cloud, File, Loader2 } from "lucide-react"
+import { Cloud, File, Loader2, XCircle } from "lucide-react"
 import { Progress } from "./ui/progress"
 import { setInterval } from "timers"
 import { useUploadThing } from "@/lib/uploadthing"
@@ -17,6 +17,7 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
     const router = useRouter()
     const [isUploading, setIsUploading] = useState<boolean>(false)
     const [uploadProgress, setUploadProgress] = useState<number>(0)
+    const [isFailed,setIsFailed] = useState<boolean>(false)
     const {toast} = useToast()
     
     const { startUpload } = useUploadThing(
@@ -32,7 +33,7 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
    })
     const startSimulatedProgress = () => {
         setUploadProgress(0)
-
+        setIsFailed(false)
         const interval = setInterval(()=>{
             setUploadProgress((prev)=>{
                 if(prev >=95){
@@ -53,9 +54,11 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
         const res = await startUpload(acceptedFile)
 
         if(!res){
+            setIsFailed(true)
+            
             return toast({
-                title: "Something went wrong!",
-                description: "Please try again later",
+                title: "Plan Exceeded",
+                description: "Please try to use smaller file",
                 variant: "destructive"
             })
         }
@@ -65,6 +68,7 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
         const key = fileResponse?.key
 
         if(!key){
+
             return toast({
                 title: "Something went wrong!",
                 description: "Please try again later",
@@ -109,7 +113,7 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
                     </div>
                 ) : null}
 
-                {isUploading ? (
+                {isUploading && !isFailed ? (
                     <div className="w-full mt-4 max-w-xs mx-auto">
                         <Progress
                         indicatorColor={
@@ -124,7 +128,11 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
                             </div>
                         ) : null}
                     </div>
-                ) : null}
+                ) :  null}
+                {isFailed ? (<div className="flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2">
+                    <XCircle className="h-5 w-5 text-red-400"/>
+                    Only accepts file of size {isSubscribed ? "16": "4"}mb or less.
+                </div>) : null}
                     </div>
                 </div>
             </div>

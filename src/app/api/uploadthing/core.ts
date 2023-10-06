@@ -76,8 +76,9 @@ const onUploadComplete = async ({
           id: createdFile.id
         }
       })
+      return
     }
-
+    
     const pinecone = await getPineconeClient()
     const pineconeIndex = pinecone.Index('pdfmate') 
 

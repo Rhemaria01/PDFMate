@@ -11,10 +11,11 @@ import { getUserSubscriptionPlan } from "@/lib/stripe"
 
 interface ChatWrapperProps {
   fileId: string,
-  subscriptionPlan: Awaited<ReturnType<typeof getUserSubscriptionPlan>>
+  isSubscribed: boolean
 }
-const ChatWrapper = ({fileId, subscriptionPlan}: ChatWrapperProps) => {
-
+const ChatWrapper = ({fileId, isSubscribed }: ChatWrapperProps) => {
+ 
+  
   const {data, isLoading} = trpc.getFileUploadStatus.useQuery({
     fileId,
   },{
@@ -69,8 +70,8 @@ const ChatWrapper = ({fileId, subscriptionPlan}: ChatWrapperProps) => {
             </h3>
           <p className="text-zinc-500 text-sm">
             Your <span className="font-medium">
-              {subscriptionPlan.isSubscribed? "Pro" : "Free"}
-              </span>plan supports up to {subscriptionPlan.pagePerPdf} pages per PDF.
+              {isSubscribed? "Pro" : "Free"}
+              </span> plan supports up to {isSubscribed?'25':'5'} pages per PDF.
           </p>
           <Link 
           href='/dashboard'

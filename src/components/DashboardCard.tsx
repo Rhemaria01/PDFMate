@@ -31,14 +31,12 @@ const DashboardCard = ({file}: DashboardCardProps) => {
             utils.getUserFiles.invalidate()
         }
     })
-    const {isLoading,} = trpc.getFileMessages.useQuery({
-        limit:1,
+    const {isLoading} = trpc.getFileLastMessage.useQuery({
         fileId: file.id,
     },{
-        onSuccess: ({messages}) => {
+        onSuccess: (message) => {
 
-            if(messages.length > 0 ) setLastMessage( messages[0]?.text )
-            else setLastMessage('')
+          setLastMessage(message!) 
         }
     })
 

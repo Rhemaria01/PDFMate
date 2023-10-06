@@ -8,6 +8,7 @@ import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { PineconeStore } from "langchain/vectorstores/pinecone";
 import { NextRequest } from "next/server";
 import { OpenAIStream, StreamingTextResponse } from 'ai'
+import { log } from "console";
 
 export const POST =async (req:NextRequest) => {
     
@@ -53,7 +54,7 @@ export const POST =async (req:NextRequest) => {
         namespace: file.id
       })
 
-      const results = await vectorstore.similaritySearch(message, 4)
+      const results = await vectorstore.similaritySearch(message, 2) 
 
       const prevMessages = await db.message.findMany({
         where: {

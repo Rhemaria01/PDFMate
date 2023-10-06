@@ -165,7 +165,33 @@ export const appRouter = router({
         nextCursor,
       }
     }),
+  getFileLastMessage: privateProcedure.
+  input(z.object({fileId: z.string()})).
+  query(async ({ctx,input}) => {
+    const { userId } = ctx
+    const {fileId} = input
+    const file = await db.file.findFirst({
+      where: {
+        id: fileId,
+        userId,
+      },
+    })
 
+    if (!file) throw new TRPCError({ code: 'NOT_FOUND' })
+
+    const messages = await db.message.findMany({
+      where:{
+      fileId,
+      isUserMessage: true
+      }
+    })
+
+    if(!messages) return ''
+
+    const message = messages.pop()
+
+    return message?.text || ''
+  }),
   getFileUploadStatus: privateProcedure
     .input(z.object({ fileId: z.string() }))
     .query(async ({ input, ctx }) => {
