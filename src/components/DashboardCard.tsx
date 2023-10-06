@@ -24,17 +24,11 @@ interface DashboardCardProps{
 
 const DashboardCard = ({file}: DashboardCardProps) => {
     const [lastMessage,setLastMessage] = useState<string | null>(null)
-    const [currentlyDeletingFile, setCurrentlyDeletingFile] = useState<string | null>(null)
+    // const [deletingFile, setCurrentlyDeletingFile] = useState<string | null>(null)
     const utils = trpc.useContext()
-    const { mutate: deleteFile } = trpc.deleteFile.useMutation({
+    const { mutate: deleteFile, isLoading: deletingFile } = trpc.deleteFile.useMutation({
         onSuccess: () => {
             utils.getUserFiles.invalidate()
-        },
-        onMutate({id}){
-            setCurrentlyDeletingFile(id)
-        },
-        onSettled(){
-            setCurrentlyDeletingFile(null)
         }
     })
     const {isLoading,} = trpc.getFileMessages.useQuery({
@@ -86,7 +80,7 @@ const DashboardCard = ({file}: DashboardCardProps) => {
                             size='sm'
                             variant='destructive'
                             className='w-full'>
-                               {currentlyDeletingFile === file.id ? (<Loader2 className='h-4 w-4 animate-spin' />) : <Trash className='h-4 w-4'/>}
+                               {deletingFile  ? (<Loader2 className='h-4 w-4 animate-spin' />) : <Trash className='h-4 w-4'/>}
                             </Button>
                          </div>
 

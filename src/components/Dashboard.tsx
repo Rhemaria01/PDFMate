@@ -2,7 +2,7 @@
 import React,{useState} from 'react'
 import UploadButton from './UploadButton'
 import { trpc } from '@/app/_trpc/client'
-import { Ghost, Trash } from 'lucide-react'
+import { Ghost, Loader2, Trash } from 'lucide-react'
 import Skeleton from 'react-loading-skeleton'
 
 import { Button } from './ui/button'
@@ -71,7 +71,7 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
                 size='sm'
                 variant='destructive'
                 >
-                   <Trash className='h-4 w-4'/>
+                   {deleting ? <Loader2 className='h-4 w-4 animate-spin' /> :<Trash className='h-4 w-4'/>}
                 </Button>
                 </div>
             </div>
@@ -81,7 +81,7 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
                 {files.sort((a,b) => 
                 new Date(b.createdAt).getTime() -
                  new Date(a.createdAt).getTime()).map( (file) => {
-                    return <DashboardCard file={file}/>
+                    return <DashboardCard file={file} key={file.id}/>
                     })}
 
                     
