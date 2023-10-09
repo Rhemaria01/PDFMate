@@ -19,8 +19,8 @@ export const PLANS = [
         price: {
             amount: 9.99,
             priceIds: {
-                test: 'price_1NxOJmSB8i4m2OvRCTxi2num',
-                production: ''
+                test: 'price_1NzKGISHni2VRAceT7SdIW7n',
+                production: 'price_1NxsCzSHni2VRAceTuIrNyD0'
             }
         }
     }
