@@ -19,7 +19,14 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
     const router = useRouter()
     const [isUploading, setIsUploading] = useState<boolean>(false)
     const [uploadProgress, setUploadProgress] = useState<number>(0)
-    const [isFailed,setIsFailed] = useState<boolean>(false)
+    type isFailedType =  {
+        status: boolean,
+        message: string
+    }
+    const [isFailed,setIsFailed] = useState<isFailedType>({
+        status: false,
+        message: ""
+    })
     const {mutate: getUserQuota,data: isQuotaExceeded, isLoading: isQuotaLoading} = trpc.getUserQuota.useMutation()
 
     const {toast} = useToast()
@@ -37,7 +44,10 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
    })
     const startSimulatedProgress = () => {
         setUploadProgress(0)
-        setIsFailed(false)
+        setIsFailed({
+            status:false,
+            message: ""
+        })
         const interval = setInterval(()=>{
             setUploadProgress((prev)=>{
                 if(prev >=95){
@@ -58,7 +68,11 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
         const res = await startUpload(acceptedFile)
 
         if(!res){
-            setIsFailed(true)
+            setIsFailed({
+                status: true,
+                message: `Only accepts file of size ${isSubscribed ? "16": "4"}mb or less.`
+            }
+            )
             
             return toast({
                 title: "Plan Exceeded",
@@ -117,7 +131,7 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
                     </div>
                 ) : null}
 
-                {isUploading && !isFailed ? (
+                {isUploading && !isFailed.status ? (
                     <div className="w-full mt-4 max-w-xs mx-auto">
                         <Progress
                         indicatorColor={
@@ -133,9 +147,9 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
                         ) : null}
                     </div>
                 ) :  null}
-                {isFailed ? (<div className="flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2">
+                {isFailed.status ? (<div className="flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2">
                     <XCircle className="h-5 w-5 text-red-400"/>
-                    Only accepts file of size {isSubscribed ? "16": "4"}mb or less.
+                        {isFailed.message}
                 </div>) : null}
                     </div>
                 </div>
