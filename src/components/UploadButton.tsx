@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import {  useState } from "react"
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
 import { Button } from "./ui/button"
 
@@ -144,23 +144,29 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
 
 interface UploadButtonProps {
     isSubscribed: boolean,
-    isQuotaExceeded: boolean 
+    isQuotaExceeded: boolean
 }
 const UploadButton = ({isSubscribed, isQuotaExceeded}: UploadButtonProps) => {
     const [isOpen,setIsOpen] = useState<boolean>(false)
+    
     return (
         <Dialog open={isOpen} onOpenChange={(v)=>{
             if(!v){
                 setIsOpen(v)
             }
         }}>
-            <DialogTrigger onClick={()=>setIsOpen(true)} asChild>
-                <Button>Upload PDF</Button>
+            <DialogTrigger onClick={() => setIsOpen(true)} asChild>
+                <Button >Upload PDF </Button>
             </DialogTrigger>
 
             <DialogContent>
-               {isQuotaExceeded ? 
-               (<div className="flex flex-col gap-1 items-center justify-center text-base text-zinc-700 text-center pt-2">
+              
+                {isQuotaExceeded ? 
+               (
+                
+                <div className="flex items-center justify-center h-64 m-4">
+                
+                <div className="flex flex-col gap-1 items-center h-full w-full justify-center text-base text-zinc-700 text-center pt-2">
                 <p className="text-2xl text-black flex gap-x-2 items-center justify-center mb-5">
                <XCircle className="h-6 w-6 text-red-400"/> 
                File Amount Exceeded
@@ -175,7 +181,10 @@ const UploadButton = ({isSubscribed, isQuotaExceeded}: UploadButtonProps) => {
                 </>) }
               </p>
                
-                </div>)
+                
+                </div>
+                </div>
+                )
                :<UploadDropzone isSubscribed={isSubscribed}/>}
             </DialogContent>
         </Dialog>

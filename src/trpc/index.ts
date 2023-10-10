@@ -55,7 +55,18 @@ export const appRouter = router({
         userId,
       },
     })
+    
+    return files
+  }),
 
+  getUserQuota: privateProcedure.query(async ({ctx}) => {
+    const { userId } = ctx
+    const files = await db.file.findMany({
+      where: {
+        userId,
+        
+      },
+    })
     const subscriptionPlan = await getUserSubscriptionPlan()
 
     const quota = PLANS.find(plan => plan.name === subscriptionPlan.name)?.quota ?? PLANS[0].quota
@@ -64,8 +75,9 @@ export const appRouter = router({
        file.createdAt.getMonth() === new Date().getMonth() &&
        file.createdAt.getFullYear() === new Date().getFullYear())
        .length >= quota
-    
-    return {files,isQuotaCompleted}
+      
+    return isQuotaCompleted
+
   }),
 
   createStripeSession: privateProcedure.mutation(
@@ -177,7 +189,7 @@ export const appRouter = router({
       }
     }),
 
-  getFileLastMessage: privateProcedure.
+  getMessageCount: privateProcedure.
   input(z.object({fileId: z.string()})).
   query(async ({ctx,input}) => {
     const { userId } = ctx

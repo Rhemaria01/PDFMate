@@ -31,7 +31,7 @@ const DashboardCard = ({file}: DashboardCardProps) => {
             utils.getUserFiles.invalidate()
         }
     })
-    const {isLoading} = trpc.getFileLastMessage.useQuery({
+    const {isLoading} = trpc.getMessageCount.useQuery({
         fileId: file.id,
     },{
         onSuccess: (message) => {

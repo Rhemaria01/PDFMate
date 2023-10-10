@@ -18,7 +18,7 @@ interface PagePros {
 }
 const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
     
-    const {data, isLoading} = trpc.getUserFiles.useQuery()
+    const {data: files, isLoading} = trpc.getUserFiles.useQuery()
    
     
     
@@ -38,6 +38,12 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
         }
     })
 
+    const {data: isQuotaExceeded, isLoading: isQuotaLoading, refetch, isRefetching} = trpc.getUserQuota.useQuery()
+    useEffect( () => {
+      refetch()
+    
+     
+    }, [files])
     
     
     
@@ -47,13 +53,15 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
             <h1 className='mb-3 font-bold text-5xl text-gray-900 '>
                 My Files
             </h1>
-            {isLoading ?
-            <Button disabled={true}>
-                <Loader2 className='h-4 w-4 animate-spin' />
-            </Button>
-            :
-            <UploadButton isSubscribed={subscriptionPlan.isSubscribed} isQuotaExceeded={data!.isQuotaCompleted}/>
-            }   
+            {
+                isQuotaLoading  ?
+                <Button disabled={true}>
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                </Button>
+                :  <UploadButton isSubscribed={subscriptionPlan.isSubscribed} isQuotaExceeded={isQuotaExceeded!}/>
+
+            }
+            
         </div>
 
         {/* Display all user files */}
@@ -88,9 +96,9 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
                 </div>
             </div>
         ) : null}
-        {data?.files && data.files?.length !== 0 ? 
+        {files && files?.length !== 0 ? 
         (<ul className=' grid grid-cols-1 gap-6 divide-y divide-zinc-200 md:grid-cols-2 lg:grid-cols-3'>
-                {data.files.sort((a,b) => 
+                {files.sort((a,b) => 
                 new Date(b.createdAt).getTime() -
                  new Date(a.createdAt).getTime()).map( (file) => {
                     return <DashboardCard file={file} key={file.id}/>
