@@ -20,8 +20,10 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
     const [isUploading, setIsUploading] = useState<boolean>(false)
     const [uploadProgress, setUploadProgress] = useState<number>(0)
     const [isFailed,setIsFailed] = useState<boolean>(false)
+    const {mutate: getUserQuota,data: isQuotaExceeded, isLoading: isQuotaLoading} = trpc.getUserQuota.useMutation()
+
     const {toast} = useToast()
-    
+   
     const { startUpload } = useUploadThing(
         isSubscribed ? "proPlanUploader" : "freePlanUploader"
     )
@@ -52,7 +54,7 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
         setIsUploading(true)
         
         const progressInterval = startSimulatedProgress()
-
+        
         const res = await startUpload(acceptedFile)
 
         if(!res){
@@ -60,7 +62,7 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
             
             return toast({
                 title: "Plan Exceeded",
-                description: "Please try to use smaller file",
+                description: "Attempting to upload file which exceeds the size limit permitted by your subscription plan.",
                 variant: "destructive"
             })
         }
@@ -144,24 +146,36 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
 
 interface UploadButtonProps {
     isSubscribed: boolean,
-    isQuotaExceeded: boolean
+   
 }
-const UploadButton = ({isSubscribed, isQuotaExceeded}: UploadButtonProps) => {
+const UploadButton = ({isSubscribed}: UploadButtonProps) => {
     const [isOpen,setIsOpen] = useState<boolean>(false)
+    const {mutate: getUserQuota,data: isQuotaExceeded, isLoading: isQuotaLoading} = trpc.getUserQuota.useMutation()
     
+    const handleClick = async () => {
+        await getUserQuota()
+        setIsOpen(true)
+    }
     return (
         <Dialog open={isOpen} onOpenChange={(v)=>{
             if(!v){
                 setIsOpen(v)
             }
         }}>
-            <DialogTrigger onClick={() => setIsOpen(true)} asChild>
-                <Button >Upload PDF </Button>
+            <DialogTrigger onClick={handleClick} asChild>
+                <Button > {isQuotaLoading ? 
+                <Loader2 className="h-4 w-4 animate-spin" />
+                :"Upload PDF" }</Button>
             </DialogTrigger>
 
             <DialogContent>
               
-                {isQuotaExceeded ? 
+                {isQuotaLoading ? (<div className="flex items-center justify-center h-64 m-4">
+                
+                <div className="flex flex-col gap-1 items-center h-full w-full justify-center text-base text-zinc-700 text-center pt-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+                </div>) : isQuotaExceeded ? 
                (
                 
                 <div className="flex items-center justify-center h-64 m-4">

@@ -59,7 +59,7 @@ export const appRouter = router({
     return files
   }),
 
-  getUserQuota: privateProcedure.query(async ({ctx}) => {
+  getUserQuota: privateProcedure.mutation(async ({ctx}) => {
     const { userId } = ctx
     const files = await db.file.findMany({
       where: {

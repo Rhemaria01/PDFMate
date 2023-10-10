@@ -1,5 +1,5 @@
 'use client'
-import React,{useState, useEffect} from 'react'
+import React,{useState} from 'react'
 import UploadButton from './UploadButton'
 import { trpc } from '@/app/_trpc/client'
 import { Ghost, Loader2, Trash } from 'lucide-react'
@@ -38,12 +38,6 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
         }
     })
 
-    const {data: isQuotaExceeded, isLoading: isQuotaLoading, refetch, isRefetching} = trpc.getUserQuota.useQuery()
-    useEffect( () => {
-      refetch()
-    
-     
-    }, [files])
     
     
     
@@ -54,11 +48,11 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
                 My Files
             </h1>
             {
-                isQuotaLoading  ?
+                isLoading  ?
                 <Button disabled={true}>
                     <Loader2 className='h-4 w-4 animate-spin' />
                 </Button>
-                :  <UploadButton isSubscribed={subscriptionPlan.isSubscribed} isQuotaExceeded={isQuotaExceeded!}/>
+                :  <UploadButton isSubscribed={subscriptionPlan.isSubscribed} />
 
             }
             
