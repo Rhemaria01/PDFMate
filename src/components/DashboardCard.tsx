@@ -23,7 +23,7 @@ interface DashboardCardProps{
 }
 
 const DashboardCard = ({file}: DashboardCardProps) => {
-    const [lastMessage,setLastMessage] = useState<string | null>(null)
+    const [messageCount,setMessageCount] = useState<number>(0)
     // const [deletingFile, setCurrentlyDeletingFile] = useState<string | null>(null)
     const utils = trpc.useContext()
     const { mutate: deleteFile, isLoading: deletingFile } = trpc.deleteFile.useMutation({
@@ -36,7 +36,7 @@ const DashboardCard = ({file}: DashboardCardProps) => {
     },{
         onSuccess: (message) => {
 
-          setLastMessage(message!) 
+            setMessageCount(message!) 
         }
     })
 
@@ -64,12 +64,7 @@ const DashboardCard = ({file}: DashboardCardProps) => {
                                 <MessageSquare className='h-4 w-4' />
                                 {
                                     isLoading ? (<Loader2 className='h-4 w-4 animate-spin' />)
-                                     : lastMessage ? (
-                                     <p className='truncate w-24'>
-                                        {lastMessage}
-                                    </p>
-                                    ):
-                                     'No Messages'
+                                     : messageCount ? `${messageCount} messages`  : 'No messages'
                                 }
                             </div>
 

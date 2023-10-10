@@ -1,5 +1,5 @@
 'use client'
-import React,{useState} from 'react'
+import React,{useState, useEffect} from 'react'
 import UploadButton from './UploadButton'
 import { trpc } from '@/app/_trpc/client'
 import { Ghost, Loader2, Trash } from 'lucide-react'
@@ -18,10 +18,14 @@ interface PagePros {
 }
 const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
     
-    const {data: files, isLoading} = trpc.getUserFiles.useQuery()
+    const {data, isLoading} = trpc.getUserFiles.useQuery()
+   
+    
     
     const [fileId,setfileId] = useState<string>('')
+    
     const {toast} = useToast()
+
     const {mutate: deleteFileFromEverywhere, isLoading: deleting} = trpc.deleteFileFromEverywhere.useMutation({
         
         onSuccess: ({title, description}) => {
@@ -33,6 +37,8 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
             setfileId('')
         }
     })
+
+    
     
     
   return (
@@ -41,7 +47,13 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
             <h1 className='mb-3 font-bold text-5xl text-gray-900 '>
                 My Files
             </h1>
-            <UploadButton isSubscribed={subscriptionPlan.isSubscribed}/>
+            {isLoading ?
+            <Button disabled={true}>
+                <Loader2 className='h-4 w-4 animate-spin' />
+            </Button>
+            :
+            <UploadButton isSubscribed={subscriptionPlan.isSubscribed} isQuotaExceeded={data!.isQuotaCompleted}/>
+            }   
         </div>
 
         {/* Display all user files */}
@@ -76,9 +88,9 @@ const Dashboard = ({subscriptionPlan, isAdmin}: PagePros) => {
                 </div>
             </div>
         ) : null}
-        {files && files?.length !== 0 ? 
+        {data?.files && data.files?.length !== 0 ? 
         (<ul className=' grid grid-cols-1 gap-6 divide-y divide-zinc-200 md:grid-cols-2 lg:grid-cols-3'>
-                {files.sort((a,b) => 
+                {data.files.sort((a,b) => 
                 new Date(b.createdAt).getTime() -
                  new Date(a.createdAt).getTime()).map( (file) => {
                     return <DashboardCard file={file} key={file.id}/>

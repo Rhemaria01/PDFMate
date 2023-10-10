@@ -12,6 +12,8 @@ import { useUploadThing } from "@/lib/uploadthing"
 import { useToast } from "./ui/use-toast"
 import { trpc } from "@/app/_trpc/client"
 import { useRouter } from "next/navigation"
+import { format } from "date-fns"
+import Link from "next/link"
 
 const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
     const router = useRouter()
@@ -139,7 +141,12 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
         )}
     </Dropzone>
 }
-const UploadButton = ({isSubscribed}: {isSubscribed: boolean}) => {
+
+interface UploadButtonProps {
+    isSubscribed: boolean,
+    isQuotaExceeded: boolean 
+}
+const UploadButton = ({isSubscribed, isQuotaExceeded}: UploadButtonProps) => {
     const [isOpen,setIsOpen] = useState<boolean>(false)
     return (
         <Dialog open={isOpen} onOpenChange={(v)=>{
@@ -152,7 +159,24 @@ const UploadButton = ({isSubscribed}: {isSubscribed: boolean}) => {
             </DialogTrigger>
 
             <DialogContent>
-               <UploadDropzone isSubscribed={isSubscribed}/>
+               {isQuotaExceeded ? 
+               (<div className="flex flex-col gap-1 items-center justify-center text-base text-zinc-700 text-center pt-2">
+                <p className="text-2xl text-black flex gap-x-2 items-center justify-center mb-5">
+               <XCircle className="h-6 w-6 text-red-400"/> 
+               File Amount Exceeded
+               </p>
+                <p>You are currently on <span className="font-bold">{isSubscribed? "Pro" : "Free"}</span> plan.</p>
+                 <p className="text-sm"> So you can't upload more than <span className="font-bold">{isSubscribed? "50" : "10"}</span> files in a month. </p>
+              <p className="text-xs text-zinc-500 font-bold">{ isSubscribed ?  ( <>
+                Hint: delete a previously uploaded file in the month of 
+                <span className="font-bold"> { format( new Date(), "MMM yyyy") }</span>.
+                </>) : (<>
+                    <Link href="/pricing" className="text-blue-500 font-bold">Upgrade to PRO</Link> to upload more files.
+                </>) }
+              </p>
+               
+                </div>)
+               :<UploadDropzone isSubscribed={isSubscribed}/>}
             </DialogContent>
         </Dialog>
     )

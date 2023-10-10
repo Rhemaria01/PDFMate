@@ -47,14 +47,25 @@ export const appRouter = router({
 
     return { success: true }
   }),
+
   getUserFiles: privateProcedure.query(async ({ ctx }) => {
     const { userId } = ctx
-
-    return await db.file.findMany({
+    const files = await db.file.findMany({
       where: {
         userId,
       },
     })
+
+    const subscriptionPlan = await getUserSubscriptionPlan()
+
+    const quota = PLANS.find(plan => plan.name === subscriptionPlan.name)?.quota ?? PLANS[0].quota
+    
+    let isQuotaCompleted = files.filter(file =>
+       file.createdAt.getMonth() === new Date().getMonth() &&
+       file.createdAt.getFullYear() === new Date().getFullYear())
+       .length >= quota
+    
+    return {files,isQuotaCompleted}
   }),
 
   createStripeSession: privateProcedure.mutation(
@@ -165,6 +176,7 @@ export const appRouter = router({
         nextCursor,
       }
     }),
+
   getFileLastMessage: privateProcedure.
   input(z.object({fileId: z.string()})).
   query(async ({ctx,input}) => {
@@ -179,19 +191,15 @@ export const appRouter = router({
 
     if (!file) throw new TRPCError({ code: 'NOT_FOUND' })
 
-    const messages = await db.message.findMany({
+    const messageCount = await db.message.count({
       where:{
       fileId,
-      isUserMessage: true
       }
     })
 
-    if(!messages) return ''
-
-    const message = messages.pop()
-
-    return message?.text || ''
+    return messageCount
   }),
+
   getFileUploadStatus: privateProcedure
     .input(z.object({ fileId: z.string() }))
     .query(async ({ input, ctx }) => {
@@ -311,14 +319,14 @@ export const appRouter = router({
             description: `Error Deleting: ${fileId} from uploadthing`
           }
         }
-
+        let data;
         try {
           await db.message.deleteMany({
             where:{
               fileId
             }
           })
-          await db.file.delete({
+           data = await db.file.delete({
             where: {
               id: fileId
             }
@@ -333,7 +341,7 @@ export const appRouter = router({
         }
         return {
           title: "Deleted Successfully",
-          description: `Deleted file ${fileId} from Pinecone, Uploadthing and Database.
+          description: `Deleted file ${data?.name} from Pinecone, Uploadthing and Database.
           Also Deleted Chat with the file`
         }
       }
