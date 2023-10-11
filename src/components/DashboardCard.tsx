@@ -69,27 +69,33 @@ const DashboardCard = ({file}: DashboardCardProps) => {
                             </Tooltip>
                             <div className='flex items-center'>
                             {file.uploadStatus === "FAILED" ? (
-                            <Tooltip delayDuration={300}>
+                            <Tooltip  delayDuration={300}>
                                 <TooltipTrigger className='cursor-default flex items-center'>
                                     <XCircle className='h-4 w-4 text-red-500 mr-1' /> 
                                     <p className='text-red-500 font-semibold'>Failed</p>
                                 </TooltipTrigger>
                                 <TooltipContent  className="bg-destructive text-destructive-foreground text-xs w-72 p-2 flex flex-col">
-                                This document surpasses the page limit defined by your subscription plan or due to an alternate cause you can't converse with it.
+                                This document surpasses the page limit defined by your subscription plan or due to an alternate cause you can&apos;t converse with it.
                                 <span className='font-semibold mt-1 italic'>  Deleting this file is advisable as it impacts your allocated file count. </span>
                                 </TooltipContent>
                             </Tooltip> 
                             ) :
-                            <MessageSquare className='h-4 w-4 mr-2 mt-1' />}
+                            <>
+                            <MessageSquare className='h-4 w-4 mr-2 mt-1' />
+                                
+                            {
+                                file.uploadStatus === "SUCCESS" ? isLoading ? (<Loader2 className='h-4 w-4 animate-spin' />)
+                                : messageCount ? `${messageCount} messages`  : 'No messages' 
+                                : null
+                            }
+                            
+                            {
+                                file.uploadStatus === "PROCESSING" ? "File in Process" : null
+                            }
+                            </>}
                                 
 
-                                {file.uploadStatus === "PROCESSING" ? "File in Process" : null}
-
-                                {
-                                    file.uploadStatus === "SUCCESS" ? isLoading ? (<Loader2 className='h-4 w-4 animate-spin' />)
-                                     : messageCount ? `${messageCount} messages`  : 'No messages' 
-                                     : null
-                                }
+                                
                             </div>
                             </TooltipProvider>
                             <Button

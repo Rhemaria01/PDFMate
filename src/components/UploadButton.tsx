@@ -199,7 +199,7 @@ const UploadButton = ({isSubscribed, isAdmin}: UploadButtonProps) => {
                File Amount Exceeded
                </p>
                 <p>You are currently on <span className="font-bold">{isSubscribed? "Pro" : "Free"}</span> plan.</p>
-                 <p className="text-sm"> So you can't upload more than <span className="font-bold">{isSubscribed? "50" : "10"}</span> files in a month. </p>
+                 <p className="text-sm"> So you can&apos;t upload more than <span className="font-bold">{isSubscribed? "50" : "10"}</span> files in a month. </p>
               <p className="text-xs text-zinc-500 font-bold">{ isSubscribed ?  ( <>
                 Hint: delete a previously uploaded file in the month of 
                 <span className="font-bold"> { format( new Date(), "MMM yyyy") }</span>.
