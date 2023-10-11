@@ -14,6 +14,7 @@ import { trpc } from "@/app/_trpc/client"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import Link from "next/link"
+import Skeleton from "react-loading-skeleton"
 
 const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
     const router = useRouter()
@@ -27,7 +28,6 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
         status: false,
         message: ""
     })
-    const {mutate: getUserQuota,data: isQuotaExceeded, isLoading: isQuotaLoading} = trpc.getUserQuota.useMutation()
 
     const {toast} = useToast()
    
@@ -64,7 +64,7 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
         setIsUploading(true)
         
         const progressInterval = startSimulatedProgress()
-        
+
         const res = await startUpload(acceptedFile)
 
         if(!res){
@@ -160,9 +160,9 @@ const UploadDropzone = ({isSubscribed}: {isSubscribed: boolean}) => {
 
 interface UploadButtonProps {
     isSubscribed: boolean,
-   
+    isAdmin: boolean
 }
-const UploadButton = ({isSubscribed}: UploadButtonProps) => {
+const UploadButton = ({isSubscribed, isAdmin}: UploadButtonProps) => {
     const [isOpen,setIsOpen] = useState<boolean>(false)
     const {mutate: getUserQuota,data: isQuotaExceeded, isLoading: isQuotaLoading} = trpc.getUserQuota.useMutation()
     
@@ -184,12 +184,11 @@ const UploadButton = ({isSubscribed}: UploadButtonProps) => {
 
             <DialogContent>
               
-                {isQuotaLoading ? (<div className="flex items-center justify-center h-64 m-4">
-                
-                <div className="flex flex-col gap-1 items-center h-full w-full justify-center text-base text-zinc-700 text-center pt-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-                </div>) : isQuotaExceeded ? 
+                {isQuotaLoading ? (
+                    <div className="m-4">
+                        <Skeleton className="h-64 rounded-lg"  />
+                    </div>
+                ) : (isQuotaExceeded && !isAdmin) ? 
                (
                 
                 <div className="flex items-center justify-center h-64 m-4">

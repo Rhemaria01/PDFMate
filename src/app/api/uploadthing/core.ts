@@ -14,10 +14,10 @@ const middleware =async () => {
         const user = getUser()
 
         if(!user || !user.id) throw new Error('UNAUTHOURIZED')
-
+        const isAdmin = user.id === process.env.ADMIN_ID
         const subscriptionPlan = await getUserSubscriptionPlan()
 
-      return { subscriptionPlan ,userId: user.id};
+      return { subscriptionPlan ,userId: user.id, isAdmin};
 }
 
 const onUploadComplete = async ({
@@ -67,7 +67,7 @@ const onUploadComplete = async ({
     const isProExceeded = pagesAmt > PLANS.find((plan) => plan.name === "Pro")!.pagePerPdf
     const isFreeExceeded = pagesAmt > PLANS.find((plan) => plan.name === "Free")!.pagePerPdf
     
-    if((isSubscribed && isProExceeded) || (!isSubscribed && isFreeExceeded)){
+    if((!metadata.isAdmin) &&( (isSubscribed && isProExceeded) || (!isSubscribed && isFreeExceeded))){
       await db.file.update({
         data:{
           uploadStatus: 'FAILED'
