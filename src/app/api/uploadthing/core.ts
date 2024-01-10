@@ -31,12 +31,12 @@ const onUploadComplete = async ({
     url: string;
   };
 }) => {
+  console.log("onupload function running");
   const isFileExist = await db.file.findFirst({
     where: {
       key: file.key,
     },
   });
-  console.log("onupload function running, this is isFileExists", isFileExist);
 
   if (isFileExist) return;
 
