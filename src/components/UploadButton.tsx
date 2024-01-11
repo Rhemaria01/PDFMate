@@ -34,6 +34,12 @@ const UploadDropzone = ({ isSubscribed }: { isSubscribed: boolean }) => {
   const { startUpload } = useUploadThing(
     isSubscribed ? "proPlanUploader" : "freePlanUploader"
   );
+  const { mutate: addFilesDataToDb } = trpc.addFilesDataToDb.useMutation({
+    onMutate: () => {
+      console.log("adding files to db");
+    },
+  });
+
   const { mutate: startPolling } = trpc.getFile.useMutation({
     onSuccess: (file) => {
       router.push(`/dashboard/${file.id}`);
@@ -96,7 +102,11 @@ const UploadDropzone = ({ isSubscribed }: { isSubscribed: boolean }) => {
             variant: "destructive",
           });
         }
-
+        addFilesDataToDb({
+          key,
+          name: fileResponse.name,
+          url: fileResponse.url,
+        });
         clearInterval(progressInterval);
         setUploadProgress(100);
 

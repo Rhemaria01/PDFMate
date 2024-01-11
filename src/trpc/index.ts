@@ -14,6 +14,9 @@ import { getUserSubscriptionPlan, stripe } from "@/lib/stripe";
 import { PLANS } from "@/config/stripe";
 import { getPineconeClient } from "@/lib/pinecone";
 import { utapi } from "uploadthing/server";
+import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import { OpenAIEmbeddings } from "langchain/embeddings/openai";
+import { PineconeStore } from "langchain/vectorstores/pinecone";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -49,7 +52,7 @@ export const appRouter = router({
         userId,
       },
     });
-    console.log("testing server logs");
+
     return files;
   }),
 
@@ -225,7 +228,6 @@ export const appRouter = router({
       });
 
       if (!file) throw new TRPCError({ code: "NOT_FOUND" });
-
       return file;
     }),
 
@@ -266,6 +268,104 @@ export const appRouter = router({
       });
 
       return file;
+    }),
+
+  addFilesDataToDb: privateProcedure
+    .input(z.object({ key: z.string(), url: z.string(), name: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { key, url, name } = input;
+      const { userId } = ctx;
+      const isFileExist = await db.file.findFirst({
+        where: {
+          key: key,
+        },
+      });
+
+      if (isFileExist)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File already exists",
+        });
+      const createdFile = await db.file.create({
+        data: {
+          key: key,
+          name: name,
+          userId: userId,
+          url: `https://uploadthing-prod.s3.us-west-2.amazonaws.com/${key}`,
+          uploadStatus: "PROCESSING",
+        },
+      });
+
+      try {
+        const response = await fetch(
+          `https://uploadthing-prod.s3.us-west-2.amazonaws.com/${key}`
+        );
+
+        const blob = await response.blob();
+
+        const loader = new PDFLoader(blob);
+
+        const pageLevelDocs = await loader.load();
+
+        const pagesAmt = pageLevelDocs.length;
+
+        const subscriptionPlan = await getUserSubscriptionPlan();
+
+        const { isSubscribed } = subscriptionPlan;
+
+        const isProExceeded =
+          pagesAmt > PLANS.find((plan) => plan.name === "Pro")!.pagePerPdf;
+        const isFreeExceeded =
+          pagesAmt > PLANS.find((plan) => plan.name === "Free")!.pagePerPdf;
+        const isAdmin = userId === process.env.ADMIN_ID;
+
+        if (
+          !isAdmin &&
+          ((isSubscribed && isProExceeded) || (!isSubscribed && isFreeExceeded))
+        ) {
+          await db.file.update({
+            data: {
+              uploadStatus: "FAILED",
+            },
+            where: {
+              id: createdFile.id,
+            },
+          });
+          return;
+        }
+
+        const pinecone = await getPineconeClient();
+        const pineconeIndex = pinecone.Index("pdfmate");
+
+        const embeddings = new OpenAIEmbeddings({
+          openAIApiKey: process.env.OPENAI_API_KEY,
+        });
+
+        await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
+          pineconeIndex,
+          namespace: createdFile.id,
+        });
+
+        await db.file.update({
+          data: {
+            uploadStatus: "SUCCESS",
+          },
+          where: {
+            id: createdFile.id,
+          },
+        });
+      } catch (error) {
+        console.log(error);
+
+        await db.file.update({
+          data: {
+            uploadStatus: "FAILED",
+          },
+          where: {
+            id: createdFile.id,
+          },
+        });
+      }
     }),
 
   deleteFileFromEverywhere: adminProcedure
