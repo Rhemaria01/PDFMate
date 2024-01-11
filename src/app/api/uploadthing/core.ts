@@ -12,6 +12,8 @@ const f = createUploadthing();
 const middleware = async () => {
   const { getUser } = getKindeServerSession();
   const user = getUser();
+  console.log("error here cause host is changed", user);
+  console.log("host", process.env.VERCEL_URL);
 
   if (!user || !user.id) throw new Error("UNAUTHOURIZED");
   const isAdmin = user.id === process.env.ADMIN_ID;
